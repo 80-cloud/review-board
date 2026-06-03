@@ -38,3 +38,7 @@ export const selectBestReview = (postId, reviewId) =>
 // いいね（👍）。{likeCount, liked} を返す。
 export const likePost = (id) => client.post(`/posts/${id}/like`).then((r) => r.data);
 export const unlikePost = (id) => client.delete(`/posts/${id}/like`).then((r) => r.data);
+
+// F-PROF 拡張：代表作ピン留め（投稿者のみ・最大3件・4件目は 400）。更新後の PostResponse を返す。
+export const pinPost = (id) => client.post(`/posts/${id}/pin`).then((r) => r.data);
+export const unpinPost = (id) => client.delete(`/posts/${id}/pin`).then((r) => r.data);

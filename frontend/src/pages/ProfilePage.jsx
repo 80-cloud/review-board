@@ -30,7 +30,7 @@ export default function ProfilePage() {
   if (loading) return <p className="p-6 text-gray-500">読み込み中…</p>;
   if (error) return <p className="p-6 text-red-600">{error}</p>;
 
-  const { displayName, role, bio, avatarUrl, portfolioUrl, githubUrl, stats, streak, posts, receivedReviews } = profile;
+  const { displayName, role, bio, avatarUrl, portfolioUrl, githubUrl, stats, streak, posts, receivedReviews, pinnedPosts } = profile;
   const isOwn = user?.id === profile.userId;
 
   return (
@@ -87,6 +87,23 @@ export default function ProfilePage() {
           onSaved={(p) => { setProfile(p); setEditing(false); }}
           onCancel={() => setEditing(false)}
         />
+      )}
+
+      {pinnedPosts && pinnedPosts.length > 0 && (
+        <section>
+          <h3 className="mac-h mb-3 text-lg">代表作（{pinnedPosts.length}）</h3>
+          <ul className="space-y-2">
+            {pinnedPosts.map((p) => (
+              <li key={p.postId} className="mac-panel flex items-center justify-between p-3 ring-1 ring-brand-500/20">
+                <Link to={`/posts/${p.postId}`} className="text-sm font-semibold text-navy-700 hover:underline">📌 {p.title}</Link>
+                <span className="flex items-center gap-2 text-xs text-gray-500">
+                  レビュー {p.reviewCount}
+                  {p.approved && <span className="rounded-full bg-green-100 px-2 py-0.5 text-green-700">🏅 合格</span>}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       {streak && <StreakCard streak={streak} />}

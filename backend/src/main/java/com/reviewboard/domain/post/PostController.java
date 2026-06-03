@@ -142,4 +142,16 @@ public class PostController {
                                          @Valid @RequestBody BestReviewRequest request) {
         return toResponse(postService.selectBestReview(principal, id, request.reviewId()), principal);
     }
+
+    /** F-PROF 拡張：代表作としてピン留め（投稿者のみ・最大3件・4件目は400）。 */
+    @PostMapping("/{id}/pin")
+    public PostResponse pin(@AuthenticationPrincipal AuthPrincipal principal, @PathVariable Long id) {
+        return toResponse(postService.pin(principal, id), principal);
+    }
+
+    /** F-PROF 拡張：代表作の固定を解除（投稿者のみ）。 */
+    @DeleteMapping("/{id}/pin")
+    public PostResponse unpin(@AuthenticationPrincipal AuthPrincipal principal, @PathVariable Long id) {
+        return toResponse(postService.unpin(principal, id), principal);
+    }
 }
