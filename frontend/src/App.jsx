@@ -11,6 +11,7 @@ import PasswordResetPage from './pages/PasswordResetPage';
 import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
 import HelpPage from './pages/HelpPage';
+import AboutPage from './pages/AboutPage';
 import InvitesPage from './pages/InvitesPage';
 import PostsPage from './pages/PostsPage';
 import NewPostPage from './pages/NewPostPage';
@@ -43,6 +44,8 @@ function Shell({ children }) {
         <div className="flex-1">{children}</div>
         <footer className="border-t border-black/5 bg-white/60">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-4 gap-y-1 px-6 py-3 text-xs text-gray-400">
+            <Link to="/about" className="hover:text-navy-700 hover:underline">このアプリについて</Link>
+            <span>·</span>
             <Link to="/help" className="hover:text-navy-700 hover:underline">ヘルプ / FAQ</Link>
             <span>·</span>
             <Link to="/terms" className="hover:text-navy-700 hover:underline">利用規約</Link>
@@ -70,6 +73,7 @@ export default function App() {
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/help" element={<HelpPage />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/" element={<Shell><PostsPage /></Shell>} />
         <Route path="/invites" element={<Shell><InvitesPage /></Shell>} />
         <Route path="/posts/new" element={<Shell><NewPostPage /></Shell>} />
