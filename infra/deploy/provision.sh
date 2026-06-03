@@ -11,7 +11,7 @@
 #   sudo PUBLIC_ORIGIN=https://example.com DOMAIN=example.com \
 #        /opt/review-board/infra-deploy/provision.sh
 # 実行例（ドメイン無し / 自己署名・IP 直 HTTPS）：
-#   sudo TLS_SELFSIGNED=1 PUBLIC_ORIGIN=https://18.176.19.160 \
+#   sudo TLS_SELFSIGNED=1 PUBLIC_ORIGIN=https://18.181.128.60 \
 #        /opt/review-board/infra-deploy/provision.sh
 # アプリ本体（jar/dist）の配置は本スクリプトでは行わない。続けて deploy.sh <sha> を実行する。
 # =====================================================================

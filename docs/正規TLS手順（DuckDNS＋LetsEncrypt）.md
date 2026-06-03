@@ -1,5 +1,10 @@
 # 正規TLS 手順書（DuckDNS ＋ Let's Encrypt）
 
+> **【現状・2026-06-03】この移行は完了済みです。** 本番は **`https://review-board-jp.duckdns.org`**
+> （→ Elastic IP `18.181.128.60`）で **Let's Encrypt 証明書・警告なし**で稼働中。
+> ⚠️ 旧 `reviewlab.duckdns.org` と旧 EIP `18.176.19.160` は**使われていません**
+> （旧 IP は解放後に第三者へ再割当て済み）。本書は手順の記録です。
+
 > 本番の自己署名証明書（ブラウザ警告あり）を、**無料**の DuckDNS サブドメイン＋
 > Let's Encrypt 証明書に切り替えて警告を解消するための運用手順。
 > Issue #243。**追加課金ゼロ**（DuckDNS 無料・Let's Encrypt 無料）。
@@ -8,7 +13,7 @@
 
 ## 前提・現状
 
-- 本番 EC2 は自己署名 TLS（`TLS_SELFSIGNED=1`）で `https://18.176.19.160` 稼働中（ブラウザ警告あり）。
+- 本番 EC2 は自己署名 TLS（`TLS_SELFSIGNED=1`）で `https://18.181.128.60` 稼働中（ブラウザ警告あり）。
 - `infra/deploy/provision.sh` は `DOMAIN` 指定時に `certbot --nginx` で Let's Encrypt 証明書を取得する
   パスを実装済み（#243 で `server_name` 差し替えを追加し DuckDNS でも確実にマッチするようにした）。
 - nginx vhost（`nginx-review-board.conf`）は SEC-13 セキュリティヘッダ（HSTS 含む）を付与済み。
@@ -27,23 +32,23 @@
 ### 1. DuckDNS でサブドメインを取得し EC2 を指す（ブラウザ作業）
 
 1. <https://www.duckdns.org> に GitHub/Google 等でログイン。
-2. 好きなサブドメイン（例：`reviewlab`）を作成 → `reviewlab.duckdns.org` が払い出される。
-3. その行の `current ip` に EC2 のパブリック IP（現状 `18.176.19.160`）を入力して **update**。
+2. 好きなサブドメイン（例：`review-board-jp`）を作成 → `review-board-jp.duckdns.org` が払い出される。
+3. その行の `current ip` に EC2 のパブリック IP（現状 `18.181.128.60`）を入力して **update**。
    - ※ IP が変わり得る場合は DuckDNS の更新トークンで定期更新も可能（DDNS の利点）。本番 EC2 が
      Elastic IP なら IP は固定なので一度の設定で足りる。
 4. 反映確認（ローカル PC で）：
 
    ```bash
-   dig +short reviewlab.duckdns.org   # → 18.176.19.160 が返れば伝播済み
+   dig +short review-board-jp.duckdns.org   # → 18.181.128.60 が返れば伝播済み
    ```
 
 ### 2. EC2 にログインして provision.sh を DOMAIN モードで実行（外部 Terminal）
 
 ```bash
-ssh -i ~/.ssh/aws-review-board ec2-user@reviewlab.duckdns.org   # or @18.176.19.160
+ssh -i ~/.ssh/aws-review-board ec2-user@review-board-jp.duckdns.org   # or @18.181.128.60
 
-sudo DOMAIN=reviewlab.duckdns.org \
-     PUBLIC_ORIGIN=https://reviewlab.duckdns.org \
+sudo DOMAIN=review-board-jp.duckdns.org \
+     PUBLIC_ORIGIN=https://review-board-jp.duckdns.org \
      CERTBOT_EMAIL=hidek.y1998@gmail.com \
      /opt/review-board/infra-deploy/provision.sh
 ```
@@ -61,16 +66,16 @@ sudo DOMAIN=reviewlab.duckdns.org \
 
 ```bash
 # 正規証明書で警告なし・HSTS が付く
-curl -sI https://reviewlab.duckdns.org/ | grep -iE 'strict-transport-security|HTTP/'
+curl -sI https://review-board-jp.duckdns.org/ | grep -iE 'strict-transport-security|HTTP/'
 # HTTP → HTTPS 恒久リダイレクト
-curl -sI http://reviewlab.duckdns.org/ | grep -iE 'location|HTTP/'
+curl -sI http://review-board-jp.duckdns.org/ | grep -iE 'location|HTTP/'
 # 未認証 API は 401
-curl -s -o /dev/null -w '%{http_code}\n' https://reviewlab.duckdns.org/api/auth/me
+curl -s -o /dev/null -w '%{http_code}\n' https://review-board-jp.duckdns.org/api/auth/me
 # health
-curl -s https://reviewlab.duckdns.org/actuator/health
+curl -s https://review-board-jp.duckdns.org/actuator/health
 ```
 
-- ブラウザで `https://reviewlab.duckdns.org` を開き、**鍵マークが正常（警告なし）** を確認。
+- ブラウザで `https://review-board-jp.duckdns.org` を開き、**鍵マークが正常（警告なし）** を確認。
 - 管理者ログイン → `/me` 往復 → Cookie が `Secure; HttpOnly; SameSite=Strict` を確認。
 
 ### 4. 証明書の自動更新
@@ -89,7 +94,7 @@ curl -s https://reviewlab.duckdns.org/actuator/health
 - 問題があれば自己署名モードに戻せる：
 
   ```bash
-  sudo TLS_SELFSIGNED=1 PUBLIC_ORIGIN=https://18.176.19.160 \
+  sudo TLS_SELFSIGNED=1 PUBLIC_ORIGIN=https://18.181.128.60 \
        /opt/review-board/infra-deploy/provision.sh
   ```
 
