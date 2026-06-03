@@ -8,3 +8,6 @@ export const createInvite = (payload = {}) =>
 export const fetchInvites = () => client.get('/invites').then((r) => r.data);
 
 export const revokeInvite = (id) => client.delete(`/invites/${id}`);
+
+// #33 非アクティブな招待を一覧から完全削除（purge=true）。有効な招待は backend が 400 で拒否。
+export const deleteInvite = (id) => client.delete(`/invites/${id}`, { params: { purge: true } });

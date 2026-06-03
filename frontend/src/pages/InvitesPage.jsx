@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { createInvite, fetchInvites, revokeInvite } from '../api/invites';
+import { createInvite, fetchInvites, revokeInvite, deleteInvite } from '../api/invites';
 import { fetchMembers, disableMember, enableMember } from '../api/members';
 import { ROLE_LABEL } from '../constants';
 import { useAuth } from '../context/AuthContext';
@@ -111,6 +111,17 @@ export default function InvitesPage() {
       await load();
     } catch (e) {
       setError(getErrorMessage(e, '失効に失敗しました。少し待ってからもう一度お試しください'));
+    }
+  };
+
+  // #33 非アクティブな招待を一覧から完全削除する。
+  const onDelete = async (id) => {
+    setError('');
+    try {
+      await deleteInvite(id);
+      setInvites((list) => list.filter((x) => x.id !== id));
+    } catch (e) {
+      setError(getErrorMessage(e, '削除に失敗しました。少し待ってからもう一度お試しください'));
     }
   };
 
@@ -228,10 +239,15 @@ export default function InvitesPage() {
                         {open ? 'リンクを隠す' : 'リンクを表示'}
                       </button>
                     )}
-                    {inv.status === 'ACTIVE' && (
+                    {inv.status === 'ACTIVE' ? (
                       <button onClick={() => onRevoke(inv.id)}
                         className="rounded-lg border border-black/10 bg-white px-3 py-1.5 text-sm font-medium text-rose-600 transition hover:bg-rose-50">
                         失効させる
+                      </button>
+                    ) : (
+                      <button onClick={() => onDelete(inv.id)}
+                        className="rounded-lg border border-black/10 bg-white px-3 py-1.5 text-sm font-medium text-gray-500 transition hover:bg-rose-50 hover:text-rose-600">
+                        削除
                       </button>
                     )}
                   </div>

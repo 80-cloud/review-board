@@ -82,6 +82,21 @@ public class InviteService {
     }
 
     /**
+     * 招待を一覧から完全削除する（#33）。誤削除防止のため、まだ使える（アクティブな）招待は拒否し、
+     * 失効済み/期限切れ/上限到達のものだけ削除可。自 cohort 以外・存在しないものは 404。
+     */
+    @Transactional
+    public void delete(AuthPrincipal principal, Long inviteId) {
+        CohortInvite invite = inviteRepository.findById(inviteId)
+                .filter(i -> i.getCohortId().equals(principal.cohortId()))
+                .orElseThrow(() -> new ResourceNotFoundException("招待が見つかりません"));
+        if (invite.isUsable(OffsetDateTime.now())) {
+            throw new InvalidRequestException("有効な招待は削除できません。先に失効させてください");
+        }
+        inviteRepository.delete(invite);
+    }
+
+    /**
      * 登録時にコードを検証し原子的に消費する。無効（未存在/失効/期限切れ/枠超過）はすべて 400 で
      * 同一メッセージ（どの条件かを漏らさない）。成功時は登録先 cohortId と targetRole を返す。
      */
