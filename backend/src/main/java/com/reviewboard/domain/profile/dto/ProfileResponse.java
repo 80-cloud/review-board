@@ -19,6 +19,7 @@ public record ProfileResponse(
         String bio,
         String avatarKey,
         String avatarUrl,
+        String portfolioUrl,
         Stats stats,
         Streak streak,
         List<PostEntry> posts,

@@ -104,6 +104,37 @@ class ProfileAuthorizationIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.bio").value("自己紹介を更新"));
     }
 
+    /** F-PROF 拡張：本人がポートフォリオ URL を登録でき、GET に反映される。 */
+    @Test
+    void owner_can_set_portfolio_url() throws Exception {
+        mockMvc.perform(put("/api/users/me/profile").cookie(login(authorEmail))
+                        .contentType("application/json")
+                        .content("{\"bio\":null,\"avatarKey\":null,\"portfolioUrl\":\"https://example.com/me\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.portfolioUrl").value("https://example.com/me"));
+
+        mockMvc.perform(get("/api/users/" + authorId + "/profile").cookie(login(authorEmail)))
+                .andExpect(jsonPath("$.portfolioUrl").value("https://example.com/me"));
+    }
+
+    /** F-PROF 拡張：空文字は @URL を通り受理される（service 側で null 正規化＝未設定扱い）。 */
+    @Test
+    void empty_portfolio_url_is_accepted() throws Exception {
+        mockMvc.perform(put("/api/users/me/profile").cookie(login(authorEmail))
+                        .contentType("application/json")
+                        .content("{\"portfolioUrl\":\"\"}"))
+                .andExpect(status().isOk());
+    }
+
+    /** F-PROF 拡張：URL 形式でないポートフォリオ URL は 400（@URL バリデーション）。 */
+    @Test
+    void invalid_portfolio_url_is_rejected_400() throws Exception {
+        mockMvc.perform(put("/api/users/me/profile").cookie(login(authorEmail))
+                        .contentType("application/json")
+                        .content("{\"portfolioUrl\":\"not a url\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
     /** ★編集は /me（principal）に限定＝他人の userId を指定する経路が存在しない。未認証は 401。 */
     @Test
     void profile_update_requires_auth_returns401() throws Exception {

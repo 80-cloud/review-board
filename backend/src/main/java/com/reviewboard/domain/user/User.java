@@ -51,6 +51,10 @@ public class User {
     @Column(name = "avatar_key", length = 512)
     private String avatarKey;
 
+    /** 個人ポートフォリオサイトの URL（任意・null 可・最大 255）。成長記録ページに表示する。 */
+    @Column(name = "portfolio_url", length = 255)
+    private String portfolioUrl;
+
     /**
      * TOTP シークレット（#235）。setup 中は値を持つが mfaEnabled=false（pending）。未設定は null。
      * #249 以降は at-rest 暗号化（"v1:..." 形式）で保存（V20 で 255 文字へ拡張）。
