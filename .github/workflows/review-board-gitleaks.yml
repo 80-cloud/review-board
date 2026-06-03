@@ -57,7 +57,8 @@ jobs:
       - name: review-board を機密情報スキャン
         run: |
           # 検知時は gitleaks が exit 1 → step が fail。設定は repo ルートの .gitleaks.toml。
-          gitleaks dir review-board \
+          # 専用リポ化でソースはルート直下のため、リポ全体（.）を走査する。
+          gitleaks dir . \
             --config .gitleaks.toml \
             --report-path gitleaks-report.json \
             --report-format json \
