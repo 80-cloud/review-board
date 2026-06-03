@@ -28,16 +28,16 @@
 ## 画面
 
 ### ログイン
-![ログイン画面](screenshots/01_ログイン.png)
+![ログイン画面](screenshots/01_login.png)
 
 ### みんなの成果物（作品一覧）
-![作品一覧](screenshots/02_作品一覧.png)
+![作品一覧](screenshots/02_works.png)
 
 ### 投稿の詳細（レビューを書く）
-![投稿詳細](screenshots/03_投稿詳細.png)
+![投稿詳細](screenshots/03_detail.png)
 
 ### 成長の記録（プロフィール）
-![プロフィール](screenshots/04_プロフィール.png)
+![プロフィール](screenshots/04_profile.png)
 
 ## 技術スタック
 
