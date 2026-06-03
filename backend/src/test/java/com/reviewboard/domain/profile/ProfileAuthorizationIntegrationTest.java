@@ -117,14 +117,13 @@ class ProfileAuthorizationIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.portfolioUrl").value("https://example.com/me"));
     }
 
-    /** F-PROF 拡張：空文字は未設定（null）に正規化される。 */
+    /** F-PROF 拡張：空文字は @URL を通り受理される（service 側で null 正規化＝未設定扱い）。 */
     @Test
-    void blank_portfolio_url_is_normalized_to_null() throws Exception {
+    void empty_portfolio_url_is_accepted() throws Exception {
         mockMvc.perform(put("/api/users/me/profile").cookie(login(authorEmail))
                         .contentType("application/json")
-                        .content("{\"portfolioUrl\":\"   \"}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.portfolioUrl").doesNotExist());
+                        .content("{\"portfolioUrl\":\"\"}"))
+                .andExpect(status().isOk());
     }
 
     /** F-PROF 拡張：URL 形式でないポートフォリオ URL は 400（@URL バリデーション）。 */
