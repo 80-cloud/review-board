@@ -99,6 +99,12 @@ export default function WorksList({ posts, loading, error, applied, setFilter, o
                   {p.recruitStatus === 'OPEN'
                     ? <span className="absolute right-3 top-9 rounded-full bg-brand-500 px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">募集中</span>
                     : <span className="absolute right-3 top-9 rounded-full bg-gray-700/80 px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">締切</span>}
+                  {/* #29 合格バッジ：カード左上に大きく。最新評価が「合格」の作品のみ。 */}
+                  {p.approved && (
+                    <span className="absolute left-3 top-9 flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 px-3 py-1 text-sm font-extrabold text-white shadow-md ring-2 ring-white/70">
+                      🏅 合格
+                    </span>
+                  )}
                 </div>
                 <div className="p-4">
                   <h3 className="mb-2 line-clamp-2 min-h-[2.6em] text-[15px] font-bold leading-snug text-navy-700">{p.title}</h3>

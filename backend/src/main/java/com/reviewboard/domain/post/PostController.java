@@ -1,6 +1,8 @@
 package com.reviewboard.domain.post;
 
 import com.reviewboard.domain.auth.AuthPrincipal;
+import com.reviewboard.domain.evaluation.EvaluationRepository;
+import com.reviewboard.domain.evaluation.EvaluationResult;
 import com.reviewboard.domain.post.dto.BestReviewRequest;
 import com.reviewboard.domain.post.dto.LikeResponse;
 import com.reviewboard.domain.post.dto.PostCreateRequest;
@@ -36,15 +38,17 @@ public class PostController {
     private final UserRepository userRepository;
     private final PostLikeService postLikeService;
     private final PostLikeRepository postLikeRepository;
+    private final EvaluationRepository evaluationRepository;
 
     public PostController(PostService postService, StorageService storageService,
                           UserRepository userRepository, PostLikeService postLikeService,
-                          PostLikeRepository postLikeRepository) {
+                          PostLikeRepository postLikeRepository, EvaluationRepository evaluationRepository) {
         this.postService = postService;
         this.storageService = storageService;
         this.userRepository = userRepository;
         this.postLikeService = postLikeService;
         this.postLikeRepository = postLikeRepository;
+        this.evaluationRepository = evaluationRepository;
     }
 
     /** screenshotKey から署名付き URL を補い、閲覧者のいいね状態を添えて詳細レスポンスを組み立てる（SEC-8）。 */
@@ -86,10 +90,15 @@ public class PostController {
         Set<Long> likedPostIds = ids.isEmpty() ? Set.of()
                 : postLikeRepository.findByUserIdAndPostIdIn(principal.userId(), ids)
                     .stream().map(PostLike::getPostId).collect(Collectors.toSet());
+        // #29 合格バッジ：最新評価が APPROVED の postId 集合をバッチ解決（N+1 回避）。
+        Set<Long> approvedPostIds = ids.isEmpty() ? Set.of()
+                : evaluationRepository.findByPostIdInAndLatestIsTrue(ids).stream()
+                    .filter(e -> e.getResult() == EvaluationResult.APPROVED)
+                    .map(e -> e.getPostId()).collect(Collectors.toSet());
         return slice.map(p -> PostSummaryResponse.from(
                 p, authorNames.get(p.getAuthorUserId()),
                 storageService.presignedGetUrl(p.getEffectiveScreenshotKey()),
-                likedPostIds.contains(p.getId())));
+                likedPostIds.contains(p.getId()), approvedPostIds.contains(p.getId())));
     }
 
     /** F-POST-03 単体取得 */
