@@ -24,7 +24,8 @@ public record ProfileResponse(
         Stats stats,
         Streak streak,
         List<PostEntry> posts,
-        List<ReceivedReview> receivedReviews) {
+        List<ReceivedReview> receivedReviews,
+        List<PostEntry> pinnedPosts) {
 
     /** F-PROF-03 実績数（非正規化カウンタ） */
     public record Stats(int receivedReviewsCount, int givenReviewsCount, int thanksReceivedCount) {

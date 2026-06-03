@@ -27,6 +27,7 @@ public record PostResponse(
         int reviewCount,
         int likeCount,
         boolean liked,
+        boolean pinned,
         Long bestReviewId,
         List<ReviewTone> reviewTones,
         List<ReviewAspect> reviewAspects,
@@ -44,7 +45,7 @@ public record PostResponse(
                 p.getId(), p.getAuthorUserId(), p.getCohortId(),
                 p.getTitle(), p.getDescription(), p.getRepoUrl(), p.getDemoUrl(),
                 p.getScreenshotKey(), screenshotUrl, p.getRecruitStatus(), p.getReviewCount(),
-                p.getLikeCount(), liked,
+                p.getLikeCount(), liked, p.getPinnedAt() != null,
                 p.getBestReviewId(), new ArrayList<>(p.getReviewTones()), new ArrayList<>(p.getReviewAspects()),
                 p.getAiUsage(), p.getCreatedAt(), p.getUpdatedAt());
     }

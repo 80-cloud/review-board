@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -118,10 +119,23 @@ public class ProfileService {
         ProfileResponse.Streak streak = StreakCalculator.compute(
                 activities, LocalDate.now(DISPLAY_ZONE), DISPLAY_ZONE);
 
+        // F-PROF 拡張：代表作（ピン留め）を pinned_at の新しい順に最大3件。postEntries と同じ集約を再利用。
+        List<ProfileResponse.PostEntry> pinnedPosts = posts.stream()
+                .filter(p -> p.getPinnedAt() != null)
+                .sorted(Comparator.comparing(Post::getPinnedAt).reversed())
+                .limit(3)
+                .map(p -> {
+                    EvaluationResult result = latestByPost.get(p.getId());
+                    return new ProfileResponse.PostEntry(
+                            p.getId(), p.getTitle(), p.getRecruitStatus(), p.getReviewCount(),
+                            result == EvaluationResult.APPROVED, result, p.getCreatedAt());
+                })
+                .toList();
+
         return new ProfileResponse(
                 target.getId(), target.getDisplayName(), target.getRole(), target.getBio(),
                 target.getAvatarKey(), storageService.presignedGetUrl(target.getAvatarKey()),
                 target.getPortfolioUrl(), target.getGithubUrl(),
-                stats, streak, postEntries, received);
+                stats, streak, postEntries, received, pinnedPosts);
     }
 }

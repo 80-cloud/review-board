@@ -158,6 +158,37 @@ public class PostService {
         return post;
     }
 
+    /** 代表作ピン留めの上限（プロフィール上部に固定表示する最大件数）。 */
+    private static final long MAX_PINNED = 3;
+
+    /**
+     * 代表作としてピン留め（F-PROF 拡張）。★投稿者のみ（loadOwned で 404）。
+     * 既にピン済みなら何もしない（冪等）。未ピンで上限（3 件）に達している場合は 400。
+     */
+    @Transactional
+    public Post pin(AuthPrincipal principal, Long postId) {
+        Post post = loadOwned(principal, postId);
+        if (post.getPinnedAt() == null) {
+            if (postRepository.countByAuthorUserIdAndDeletedAtIsNullAndPinnedAtIsNotNull(principal.userId()) >= MAX_PINNED) {
+                throw new InvalidRequestException("代表作は最大 " + MAX_PINNED + " 件までです。先にどれかの固定を解除してください。");
+            }
+            post.setPinnedAt(OffsetDateTime.now());
+            auditService.record(principal, AuditAction.POST_PINNED, AuditTargetType.POST, postId);
+        }
+        return post;
+    }
+
+    /** 代表作の固定を解除（F-PROF 拡張）。★投稿者のみ。既に未ピンなら何もしない（冪等）。 */
+    @Transactional
+    public Post unpin(AuthPrincipal principal, Long postId) {
+        Post post = loadOwned(principal, postId);
+        if (post.getPinnedAt() != null) {
+            post.setPinnedAt(null);
+            auditService.record(principal, AuditAction.POST_UNPINNED, AuditTargetType.POST, postId);
+        }
+        return post;
+    }
+
     /** F-POST-02 論理削除（共通設計方針）。所有者のみ（不一致は 404）。 */
     @Transactional
     public void delete(AuthPrincipal principal, Long postId) {

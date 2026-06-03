@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { fetchPost, deletePost, restorePost, selectBestReview, likePost, unlikePost } from '../api/posts';
+import { fetchPost, deletePost, restorePost, selectBestReview, likePost, unlikePost, pinPost, unpinPost } from '../api/posts';
 import { fetchReviews } from '../api/reviews';
 import { fetchEvaluation } from '../api/evaluations';
 import { useAuth } from '../context/AuthContext';
@@ -87,6 +87,16 @@ export default function PostDetailPage() {
     }
   };
 
+  // F-PROF 拡張：代表作ピン留めのトグル（投稿者のみ）。最大3件超過は backend が 400。
+  const togglePin = async () => {
+    try {
+      const updated = post.pinned ? await unpinPost(post.id) : await pinPost(post.id);
+      setPost(updated);
+    } catch (err) {
+      setError(getErrorMessage(err, '代表作は最大3件までです。先にどれかの固定を解除してください'));
+    }
+  };
+
   // #505：デスクトップは 2 カラム化（左：投稿本体+評価+既存レビュー / 右：sticky の ReviewForm）。
   // 投稿者本人はフォームが出ないので単一カラム。モバイル（< lg）も縦並び。
   const useTwoColumn = !isAuthor;
@@ -104,6 +114,9 @@ export default function PostDetailPage() {
               <h2 className="mac-h text-2xl">{post.title}</h2>
               {isAuthor && (
                 <div className="flex flex-shrink-0 gap-3 text-sm">
+                  <button onClick={togglePin} className="font-medium text-navy-700 hover:underline">
+                    {post.pinned ? '📌 代表作を解除' : '📌 代表作にする'}
+                  </button>
                   <Link to={`/posts/${post.id}/edit`} className="font-medium text-brand-500 hover:underline">編集</Link>
                   <button onClick={removePost} className="font-medium text-red-500 hover:underline">削除</button>
                 </div>

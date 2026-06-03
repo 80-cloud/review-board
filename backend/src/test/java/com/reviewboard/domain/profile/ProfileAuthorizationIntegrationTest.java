@@ -157,6 +157,18 @@ class ProfileAuthorizationIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
+    /** F-PROF 拡張：ピン留めした投稿が代表作（pinnedPosts）として成長記録に返る。 */
+    @Test
+    void pinned_posts_appear_in_profile() throws Exception {
+        Cookie authorCookie = login(authorEmail);
+        long pid = createPost(authorCookie, "代表作品");
+        mockMvc.perform(post("/api/posts/" + pid + "/pin").cookie(authorCookie))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/users/" + authorId + "/profile").cookie(authorCookie))
+                .andExpect(jsonPath("$.pinnedPosts.length()").value(1))
+                .andExpect(jsonPath("$.pinnedPosts[0].title").value("代表作品"));
+    }
+
     /** ★編集は /me（principal）に限定＝他人の userId を指定する経路が存在しない。未認証は 401。 */
     @Test
     void profile_update_requires_auth_returns401() throws Exception {

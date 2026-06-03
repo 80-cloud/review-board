@@ -72,6 +72,10 @@ public class Post {
     @Column(name = "best_review_id")
     private Long bestReviewId;
 
+    /** F-PROF 拡張：代表作ピン留め日時（null=未ピン）。プロフィール上部に最大3件表示する。 */
+    @Column(name = "pinned_at")
+    private OffsetDateTime pinnedAt;
+
     /**
      * F-SAFE-01 心理的安全設定：投稿者が歓迎するレビューのトーン（多値・未設定は空）。
      * 観点と同じく正規化テーブルで保持。EAGER ＋ BatchSize で一覧の N+1 を束ねる。

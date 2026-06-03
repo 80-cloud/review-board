@@ -22,6 +22,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     /** 成長記録（F-PROF-01）：あるユーザーの投稿履歴（未削除・新しい順） */
     List<Post> findByAuthorUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(Long authorUserId);
 
+    /** 代表作ピン留め（F-PROF 拡張）：本人の現在のピン件数（最大3件制約の判定用・未削除のみ）。 */
+    long countByAuthorUserIdAndDeletedAtIsNullAndPinnedAtIsNotNull(Long authorUserId);
+
     /** ランディング統計：cohort 内の未削除投稿（集計の母集合）。 */
     List<Post> findByCohortIdAndDeletedAtIsNull(Long cohortId);
 
