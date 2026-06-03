@@ -65,11 +65,19 @@ public class InviteController {
                 .toList();
     }
 
-    /** 招待を失効させる（自 cohort 以外は 404）。 */
+    /**
+     * 招待を失効（既定）または完全削除（{@code purge=true}）する。自 cohort 以外は 404。
+     * purge は非アクティブ（失効済み/期限切れ/上限到達）の招待のみ可（#33）。
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> revoke(@AuthenticationPrincipal AuthPrincipal principal,
-                                       @PathVariable Long id) {
-        inviteService.revoke(principal, id);
+                                       @PathVariable Long id,
+                                       @RequestParam(defaultValue = "false") boolean purge) {
+        if (purge) {
+            inviteService.delete(principal, id);
+        } else {
+            inviteService.revoke(principal, id);
+        }
         return ResponseEntity.noContent().build();
     }
 }

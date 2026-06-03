@@ -108,6 +108,44 @@ class InviteFlowIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void revoked_invite_can_be_purged_and_disappears_from_list() throws Exception {
+        // #33：失効済みの招待は purge=true で完全削除でき、一覧から消える。
+        Cohort a = newCohort("A");
+        newUser("teacher-a@test", UserRole.TEACHER, a.getId());
+        Cookie teacher = login("teacher-a@test");
+
+        issueCode(teacher, "{}");
+        MvcResult list = mockMvc.perform(get("/api/invites").cookie(teacher))
+                .andExpect(status().isOk()).andReturn();
+        int inviteId = JsonPath.parse(list.getResponse().getContentAsString()).read("$[0].id");
+
+        // 失効 → 完全削除（purge）
+        mockMvc.perform(delete("/api/invites/" + inviteId).cookie(teacher)).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/api/invites/" + inviteId).param("purge", "true").cookie(teacher))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/invites").cookie(teacher))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void active_invite_cannot_be_purged_400() throws Exception {
+        // #33：有効な招待は誤削除防止で purge を拒否（先に失効が必要）。
+        Cohort a = newCohort("A");
+        newUser("teacher-a@test", UserRole.TEACHER, a.getId());
+        Cookie teacher = login("teacher-a@test");
+
+        issueCode(teacher, "{}");
+        MvcResult list = mockMvc.perform(get("/api/invites").cookie(teacher))
+                .andExpect(status().isOk()).andReturn();
+        int inviteId = JsonPath.parse(list.getResponse().getContentAsString()).read("$[0].id");
+
+        mockMvc.perform(delete("/api/invites/" + inviteId).param("purge", "true").cookie(teacher))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void revoked_invite_cannot_be_used_400() throws Exception {
         Cohort a = newCohort("A");
         newUser("teacher-a@test", UserRole.TEACHER, a.getId());
