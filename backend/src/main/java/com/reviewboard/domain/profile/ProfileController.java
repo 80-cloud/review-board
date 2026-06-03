@@ -34,6 +34,7 @@ public class ProfileController {
     @PutMapping("/api/users/me/profile")
     public ProfileResponse updateMyProfile(@AuthenticationPrincipal AuthPrincipal principal,
                                            @Valid @RequestBody ProfileUpdateRequest request) {
-        return profileService.updateOwnProfile(principal, request.bio(), request.avatarKey(), request.portfolioUrl());
+        return profileService.updateOwnProfile(principal, request.bio(), request.avatarKey(),
+                request.portfolioUrl(), request.githubUrl());
     }
 }

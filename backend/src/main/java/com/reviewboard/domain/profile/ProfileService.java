@@ -57,13 +57,15 @@ public class ProfileService {
      * bio・avatarKey・portfolioUrl を更新し、更新後のプロフィールを返す。
      */
     @Transactional
-    public ProfileResponse updateOwnProfile(AuthPrincipal principal, String bio, String avatarKey, String portfolioUrl) {
+    public ProfileResponse updateOwnProfile(AuthPrincipal principal, String bio, String avatarKey,
+                                            String portfolioUrl, String githubUrl) {
         User me = userRepository.findById(principal.userId())
                 .orElseThrow(() -> new ResourceNotFoundException("user not found: " + principal.userId()));
         me.setBio(bio);
         me.setAvatarKey(avatarKey);
         // 空文字は「未設定」に正規化する（リンク表示の判定を null 一本に揃える）。
         me.setPortfolioUrl(portfolioUrl == null || portfolioUrl.isBlank() ? null : portfolioUrl.trim());
+        me.setGithubUrl(githubUrl == null || githubUrl.isBlank() ? null : githubUrl.trim());
         return getProfile(principal, principal.userId());
     }
 
@@ -119,7 +121,7 @@ public class ProfileService {
         return new ProfileResponse(
                 target.getId(), target.getDisplayName(), target.getRole(), target.getBio(),
                 target.getAvatarKey(), storageService.presignedGetUrl(target.getAvatarKey()),
-                target.getPortfolioUrl(),
+                target.getPortfolioUrl(), target.getGithubUrl(),
                 stats, streak, postEntries, received);
     }
 }
