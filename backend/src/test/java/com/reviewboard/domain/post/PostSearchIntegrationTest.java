@@ -103,6 +103,16 @@ class PostSearchIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.content[?(@.title == 'Spring Boot 別期')]").doesNotExist());
     }
 
+    /** #29：一覧レスポンスに approved フラグが載る（カード左上の🏅合格バッジ用）。合格作品のみ true。 */
+    @Test
+    void list_includes_approved_flag_per_post() throws Exception {
+        mockMvc.perform(get("/api/posts").cookie(cookieA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[?(@.id == " + approvedPostId + ")].approved").value(true))
+                .andExpect(jsonPath("$.content[?(@.title == 'React Tips')].approved").value(false))
+                .andExpect(jsonPath("$.content[?(@.title == 'DB 設計')].approved").value(false));
+    }
+
     private Post newPost(Long authorId, Long cohortId, String title, String desc,
                          RecruitStatus status, int reviewCount) {
         OffsetDateTime now = OffsetDateTime.now();

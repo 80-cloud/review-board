@@ -27,17 +27,20 @@ public record PostSummaryResponse(
         List<ReviewAspect> reviewAspects,
         AiUsage aiUsage,
         String screenshotUrl,
+        boolean approved,
         OffsetDateTime createdAt) {
 
     /**
      * 一覧カード表示（案L の WORKS / RANKING）用に著者名・スクショ URL・いいね状態を補って組み立てる。
-     * 著者名・URL・liked は呼び出し側でバッチ解決して渡す（N+1 回避・SEC-8）。
+     * 著者名・URL・liked・approved は呼び出し側でバッチ解決して渡す（N+1 回避・SEC-8）。
+     * {@code approved}：最新評価が「合格」なら true（一覧カード左上の🏅合格バッジ・#29）。
      */
-    public static PostSummaryResponse from(Post p, String authorDisplayName, String screenshotUrl, boolean liked) {
+    public static PostSummaryResponse from(Post p, String authorDisplayName, String screenshotUrl,
+                                           boolean liked, boolean approved) {
         return new PostSummaryResponse(
                 p.getId(), p.getAuthorUserId(), authorDisplayName, p.getTitle(),
                 p.getRecruitStatus(), p.getReviewCount(), p.getLikeCount(), liked,
                 new ArrayList<>(p.getReviewTones()), new ArrayList<>(p.getReviewAspects()), p.getAiUsage(),
-                screenshotUrl, p.getCreatedAt());
+                screenshotUrl, approved, p.getCreatedAt());
     }
 }
