@@ -30,7 +30,7 @@ export default function ProfilePage() {
   if (loading) return <p className="p-6 text-gray-500">読み込み中…</p>;
   if (error) return <p className="p-6 text-red-600">{error}</p>;
 
-  const { displayName, role, bio, avatarUrl, stats, streak, posts, receivedReviews } = profile;
+  const { displayName, role, bio, avatarUrl, portfolioUrl, stats, streak, posts, receivedReviews } = profile;
   const isOwn = user?.id === profile.userId;
 
   return (
@@ -44,6 +44,18 @@ export default function ProfilePage() {
               <span className="ml-2 rounded-full bg-navy-700/10 px-2.5 py-0.5 text-xs font-semibold text-navy-700">{ROLE_LABEL[role] ?? role}</span>
             </h2>
             {bio && <p className="mt-1 whitespace-pre-wrap text-sm text-gray-600">{bio}</p>}
+            {portfolioUrl && (
+              <p className="mt-1.5">
+                <a
+                  href={portfolioUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-sm font-semibold text-brand-500 hover:underline"
+                >
+                  🔗 ポートフォリオ
+                </a>
+              </p>
+            )}
           </div>
           {isOwn && (
             <button onClick={() => setEditing(true)} className="text-sm font-semibold text-brand-500 hover:underline">プロフィール編集</button>
@@ -121,6 +133,7 @@ function ProfileEditModal({ profile, onSaved, onCancel }) {
   const { refreshUser } = useAuth();
   const [bio, setBio] = useState(profile.bio ?? '');
   const [avatarKey, setAvatarKey] = useState(profile.avatarKey ?? null);
+  const [portfolioUrl, setPortfolioUrl] = useState(profile.portfolioUrl ?? '');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
 
@@ -136,7 +149,7 @@ function ProfileEditModal({ profile, onSaved, onCancel }) {
     setBusy(true);
     setErr('');
     try {
-      const updated = await updateMyProfile({ bio: bio || null, avatarKey });
+      const updated = await updateMyProfile({ bio: bio || null, avatarKey, portfolioUrl: portfolioUrl || null });
       onSaved(updated);
       // ヘッダー（通知ベル横）のアバター等を最新化（AuthContext の user を引き直す）。
       refreshUser().catch(() => {});
@@ -186,6 +199,22 @@ function ProfileEditModal({ profile, onSaved, onCancel }) {
               placeholder="学んでいること・興味のある分野など"
               className="mac-input"
             />
+          </div>
+
+          {/* ポートフォリオ URL（任意・F-PROF 拡張） */}
+          <div>
+            <label htmlFor="profile-portfolio" className="mac-label">ポートフォリオ URL</label>
+            <input
+              id="profile-portfolio"
+              type="url"
+              inputMode="url"
+              value={portfolioUrl}
+              onChange={(e) => setPortfolioUrl(e.target.value)}
+              maxLength={255}
+              placeholder="https://your-portfolio.example.com"
+              className="mac-input"
+            />
+            <p className="mt-1 text-xs text-gray-400">あなたの作品サイトなどの URL を1つ登録できます。</p>
           </div>
         </div>
 

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MvcResult;
 
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -102,6 +103,38 @@ class ProfileAuthorizationIntegrationTest extends AbstractIntegrationTest {
         // GET でも反映（principal 由来＝他人を編集する経路は無い）
         mockMvc.perform(get("/api/users/" + authorId + "/profile").cookie(login(authorEmail)))
                 .andExpect(jsonPath("$.bio").value("自己紹介を更新"));
+    }
+
+    /** F-PROF 拡張：本人がポートフォリオ URL を登録でき、GET に反映される。 */
+    @Test
+    void owner_can_set_portfolio_url() throws Exception {
+        mockMvc.perform(put("/api/users/me/profile").cookie(login(authorEmail))
+                        .contentType("application/json")
+                        .content("{\"bio\":null,\"avatarKey\":null,\"portfolioUrl\":\"https://example.com/me\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.portfolioUrl").value("https://example.com/me"));
+
+        mockMvc.perform(get("/api/users/" + authorId + "/profile").cookie(login(authorEmail)))
+                .andExpect(jsonPath("$.portfolioUrl").value("https://example.com/me"));
+    }
+
+    /** F-PROF 拡張：空文字は未設定（null）に正規化される。 */
+    @Test
+    void blank_portfolio_url_is_normalized_to_null() throws Exception {
+        mockMvc.perform(put("/api/users/me/profile").cookie(login(authorEmail))
+                        .contentType("application/json")
+                        .content("{\"portfolioUrl\":\"   \"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.portfolioUrl").value(nullValue()));
+    }
+
+    /** F-PROF 拡張：URL 形式でないポートフォリオ URL は 400（@URL バリデーション）。 */
+    @Test
+    void invalid_portfolio_url_is_rejected_400() throws Exception {
+        mockMvc.perform(put("/api/users/me/profile").cookie(login(authorEmail))
+                        .contentType("application/json")
+                        .content("{\"portfolioUrl\":\"not a url\"}"))
+                .andExpect(status().isBadRequest());
     }
 
     /** ★編集は /me（principal）に限定＝他人の userId を指定する経路が存在しない。未認証は 401。 */
