@@ -9,7 +9,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MvcResult;
 
-import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -125,7 +124,7 @@ class ProfileAuthorizationIntegrationTest extends AbstractIntegrationTest {
                         .contentType("application/json")
                         .content("{\"portfolioUrl\":\"   \"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.portfolioUrl").value(nullValue()));
+                .andExpect(jsonPath("$.portfolioUrl").doesNotExist());
     }
 
     /** F-PROF 拡張：URL 形式でないポートフォリオ URL は 400（@URL バリデーション）。 */
