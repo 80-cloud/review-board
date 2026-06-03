@@ -67,9 +67,12 @@ jobs:
       SEED_PASSWORD: devpass12345
       # dev プロファイルで seed（講師/受講生）を有効化する。
       SPRING_PROFILES_ACTIVE: dev
+      # 負荷試験は毎イテレーションで login するため、認証レート制限（SEC-12・20回/分/IP）を
+      # 無効化する。無効化しないと login が 429 になり性能計測が成立しない（機能の評価ではない）。
+      RATE_LIMIT_ENABLED: "false"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Start MinIO + create bucket
         run: |
@@ -88,7 +91,7 @@ jobs:
           "
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
