@@ -39,7 +39,7 @@ export default function HelpPage() {
           <p>ヘッダー右上の「＋ 投稿する」から作成します。</p>
           <ul className="ml-5 list-disc space-y-1">
             <li><strong>タイトル・説明</strong>は必須です。説明はマークダウン記法が使えます。</li>
-            <li><strong>リポジトリ URL・デモ URL</strong>は任意。あると講師が動作を確認しやすくなります。</li>
+            <li><strong>リポジトリ URL・アプリ URL</strong>は任意。あると講師が動作を確認しやすくなります。</li>
             <li><strong>スクリーンショット</strong>（PNG / JPEG / WebP・5MB まで）も任意。一覧で目を引きます。</li>
             <li><strong>レビュー希望タグ</strong>（トーン・観点・AI 利用）を選ぶと、書き手が方針を合わせやすくなります。</li>
           </ul>
