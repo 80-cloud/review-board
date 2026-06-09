@@ -77,7 +77,7 @@ export default function PostEditPage() {
         <textarea id="edit-description" required value={form.description} onChange={set('description')} rows={4} className="mac-input mb-4" />
         <label htmlFor="edit-repo-url" className="mac-label">リポジトリ URL（任意）</label>
         <input id="edit-repo-url" type="url" value={form.repoUrl} onChange={set('repoUrl')} className="mac-input mb-4" />
-        <label htmlFor="edit-demo-url" className="mac-label">デモ URL（任意）</label>
+        <label htmlFor="edit-demo-url" className="mac-label">アプリ URL（任意）</label>
         <input id="edit-demo-url" type="url" value={form.demoUrl} onChange={set('demoUrl')} className="mac-input mb-4" />
         <ScreenshotUploader initialUrl={screenshotUrl} onChange={(key) => setForm((p) => ({ ...p, screenshotKey: key }))} />
         <ReviewPrefFields

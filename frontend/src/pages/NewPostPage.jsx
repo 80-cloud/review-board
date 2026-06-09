@@ -68,7 +68,7 @@ export default function NewPostPage() {
         <textarea id="post-description" required value={form.description} onChange={set('description')} rows={4} className="mac-input mb-4" />
         <label htmlFor="post-repo-url" className="mac-label">リポジトリ URL（任意）</label>
         <input id="post-repo-url" type="url" value={form.repoUrl} onChange={set('repoUrl')} className="mac-input mb-4" />
-        <label htmlFor="post-demo-url" className="mac-label">デモ URL（任意）</label>
+        <label htmlFor="post-demo-url" className="mac-label">アプリ URL（任意）</label>
         <input id="post-demo-url" type="url" value={form.demoUrl} onChange={set('demoUrl')} className="mac-input mb-4" />
         <ScreenshotUploader onChange={(key) => setForm((p) => ({ ...p, screenshotKey: key }))} />
         <ReviewPrefFields

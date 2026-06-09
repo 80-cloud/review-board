@@ -138,7 +138,7 @@ export default function PostDetailPage() {
                 👍 いいね <span className="tabular-nums">{post.likeCount}</span>
               </button>
               {post.repoUrl && <a href={post.repoUrl} target="_blank" rel="noreferrer" className="mac-btn-ghost">リポジトリ</a>}
-              {post.demoUrl && <a href={post.demoUrl} target="_blank" rel="noreferrer" className="mac-btn-ghost">デモ</a>}
+              {post.demoUrl && <a href={post.demoUrl} target="_blank" rel="noreferrer" className="mac-btn-ghost">アプリを観る</a>}
             </div>
           </article>
 
