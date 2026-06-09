@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { fetchInviteRole } from '../api/auth';
 import DolphinIcon from '../components/DolphinIcon';
 import { getErrorMessage } from '../lib/errorMessages';
 
@@ -17,6 +18,18 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  // #39 招待コードのロールを事前取得して表示を出し分け（取得失敗時は既定の受講生表示・登録には影響しない）。
+  const [inviteRole, setInviteRole] = useState(null);
+
+  useEffect(() => {
+    const c = (params.get('code') ?? '').trim();
+    if (!c) return undefined;
+    let active = true;
+    fetchInviteRole(c)
+      .then((d) => { if (active) setInviteRole(d?.targetRole ?? null); })
+      .catch(() => { /* 表示のみ。失敗しても登録フローは不変 */ });
+    return () => { active = false; };
+  }, [params]);
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -41,7 +54,7 @@ export default function RegisterPage() {
             <DolphinIcon className="h-12 w-12" />
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-navy-700">アカウント登録</h1>
-          <p className="mt-1 text-sm text-gray-500">招待コードで受講生として参加します</p>
+          <p className="mt-1 text-sm text-gray-500">招待コードで{inviteRole === 'TEACHER' ? '講師' : '受講生'}として参加します</p>
         </div>
 
         <form onSubmit={onSubmit} className="mac-card p-7">

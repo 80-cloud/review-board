@@ -4,9 +4,11 @@ import com.reviewboard.domain.auth.dto.LoginRequest;
 import com.reviewboard.domain.auth.dto.MfaRequiredResponse;
 import com.reviewboard.domain.auth.dto.RegisterRequest;
 import com.reviewboard.domain.auth.dto.UserResponse;
+import com.reviewboard.domain.invite.InviteService;
 import com.reviewboard.domain.mfa.dto.MfaCodeRequest;
 import com.reviewboard.domain.user.User;
 import com.reviewboard.domain.user.UserRepository;
+import com.reviewboard.domain.user.UserRole;
 import com.reviewboard.storage.StorageService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
@@ -27,14 +29,29 @@ public class AuthController {
     private final UserRepository userRepository;
     private final StorageService storageService;
     private final JwtService jwtService;
+    private final InviteService inviteService;
 
     public AuthController(AuthService authService, AuthCookies cookies, UserRepository userRepository,
-                          StorageService storageService, JwtService jwtService) {
+                          StorageService storageService, JwtService jwtService, InviteService inviteService) {
         this.authService = authService;
         this.cookies = cookies;
         this.userRepository = userRepository;
         this.storageService = storageService;
         this.jwtService = jwtService;
+        this.inviteService = inviteService;
+    }
+
+    /**
+     * #39 招待コードのロール事前表示（未認証・消費しない）。登録画面が「受講生/講師として参加」を
+     * 正しく出し分けるために使う。未知コードは {@code targetRole=null}。
+     */
+    @GetMapping("/invite-role")
+    public InviteRolePreview inviteRole(@RequestParam(required = false) String code) {
+        return new InviteRolePreview(inviteService.previewRole(code));
+    }
+
+    /** 招待ロール事前表示の応答（#39）。null は未知/未指定コード。 */
+    public record InviteRolePreview(UserRole targetRole) {
     }
 
     /**

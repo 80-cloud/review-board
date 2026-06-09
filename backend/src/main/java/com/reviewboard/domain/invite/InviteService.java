@@ -97,6 +97,20 @@ public class InviteService {
     }
 
     /**
+     * 登録前のロール事前表示用（#39）。招待コードの targetRole を返す（消費しない・読み取りのみ）。
+     * 未知コードは null（存在を強くは漏らさない／登録自体が既にオラクルのため許容）。
+     */
+    @Transactional(readOnly = true)
+    public UserRole previewRole(String rawCode) {
+        if (rawCode == null || rawCode.isBlank()) {
+            return null;
+        }
+        return inviteRepository.findByCodeHash(codeGenerator.hash(rawCode))
+                .map(CohortInvite::getTargetRole)
+                .orElse(null);
+    }
+
+    /**
      * 登録時にコードを検証し原子的に消費する。無効（未存在/失効/期限切れ/枠超過）はすべて 400 で
      * 同一メッセージ（どの条件かを漏らさない）。成功時は登録先 cohortId と targetRole を返す。
      */

@@ -146,6 +146,28 @@ class InviteFlowIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void invite_role_preview_is_public_and_returns_target_role() throws Exception {
+        // #39：登録前のロール事前表示。未認証で叩け、招待コードの targetRole を返す（消費しない）。
+        Cohort a = newCohort("A");
+        newUser("admin-a@test", UserRole.ADMIN, a.getId());
+        Cookie admin = login("admin-a@test");
+        String studentCode = issueCode(admin, "{\"targetRole\":\"STUDENT\"}");
+        String teacherCode = issueCode(admin, "{\"targetRole\":\"TEACHER\"}");
+
+        // 未認証（cookie 無し）でも 200・正しいロール
+        mockMvc.perform(get("/api/auth/invite-role").param("code", studentCode))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.targetRole").value("STUDENT"));
+        mockMvc.perform(get("/api/auth/invite-role").param("code", teacherCode))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.targetRole").value("TEACHER"));
+        // 未知コードは 200 で targetRole=null（存在を強くは漏らさない）
+        mockMvc.perform(get("/api/auth/invite-role").param("code", "no-such-code"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.targetRole").value(org.hamcrest.Matchers.nullValue()));
+    }
+
+    @Test
     void revoked_invite_cannot_be_used_400() throws Exception {
         Cohort a = newCohort("A");
         newUser("teacher-a@test", UserRole.TEACHER, a.getId());
