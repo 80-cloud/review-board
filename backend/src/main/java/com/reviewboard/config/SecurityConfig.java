@@ -72,6 +72,8 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/health",
                         "/api/auth/login", "/api/auth/refresh", "/api/auth/logout",
                         "/api/auth/register",
+                        // #39 招待ロールの事前表示（登録前に未認証で叩く・消費しない）。
+                        "/api/auth/invite-role",
                         // B-4 パスワードリセット（#231）。自己回復のため未認証で叩く。
                         "/api/auth/password-reset/request", "/api/auth/password-reset/confirm",
                         // C-6 MFA 2段目（#235）。チャレンジ Cookie ＋ TOTP で認証を完了させる。

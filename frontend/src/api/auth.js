@@ -8,6 +8,10 @@ export const login = (email, password) =>
 export const register = (payload) =>
   client.post('/auth/register', payload).then((r) => r.data);
 
+// #39 招待コードのロール事前表示（公開・消費しない）。{ targetRole: 'STUDENT'|'TEACHER'|null }。
+export const fetchInviteRole = (code) =>
+  client.get('/auth/invite-role', { params: { code } }).then((r) => r.data);
+
 export const logout = () => client.post('/auth/logout');
 
 export const fetchMe = () => client.get('/auth/me').then((r) => r.data);
