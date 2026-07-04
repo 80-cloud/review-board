@@ -19,7 +19,7 @@
 - nginx vhost（`nginx-review-board.conf`）は SEC-13 セキュリティヘッダ（HSTS 含む）を付与済み。
   **HTTPS 化により HSTS が初めて実効化**する（A-1 の「nginx HSTS 未反映」もここで解消）。
 
-## 修練城ルール（重要）
+## 多層防御ルール（重要）
 
 - 以下のうち **EC2 上のコマンド実行・nginx 再構成は人間が外部 Terminal で行う**
   （AI は terraform apply / SSM 書き込み / provision を単独実行しない）。
