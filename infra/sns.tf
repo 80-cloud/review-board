@@ -13,7 +13,7 @@ resource "aws_sns_topic" "alerts" {
 
   tags = {
     Name    = "${local.name_prefix}-alerts"
-    Purpose = "CloudWatch alerts → email"
+    Purpose = "CloudWatch alerts to email"
   }
 }
 
