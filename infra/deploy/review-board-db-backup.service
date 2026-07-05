@@ -1,0 +1,8 @@
+[Unit]
+Description=review-board daily DB backup (pg_dump -> S3)
+After=postgresql.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/review-board/db-backup.sh
