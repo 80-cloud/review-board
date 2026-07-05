@@ -60,6 +60,15 @@ install -m 644 "$HERE/review-board.service" /etc/systemd/system/review-board.ser
 systemctl daemon-reload
 systemctl enable review-board
 
+# --- 日次 DB バックアップ（EC2 ローカル PostgreSQL 運用時・pg_dump -> S3） ---
+# enable_rds=false のブリッジ構成では managed RDS の自動バックアップが無いため、
+# 論理バックアップを systemd timer で日次取得する。
+install -m 755 "$HERE/db-backup.sh" "$APP/db-backup.sh"
+install -m 644 "$HERE/review-board-db-backup.service" /etc/systemd/system/review-board-db-backup.service
+install -m 644 "$HERE/review-board-db-backup.timer" /etc/systemd/system/review-board-db-backup.timer
+systemctl daemon-reload
+systemctl enable --now review-board-db-backup.timer
+
 # --- nginx vhost ＋ TLS ---
 # 既存の review-board conf を一旦撤去（HTTP/TLS どちらか一方のみ有効化するため）。
 rm -f /etc/nginx/conf.d/review-board.conf /etc/nginx/conf.d/review-board-tls.conf

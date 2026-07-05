@@ -1,0 +1,10 @@
+[Unit]
+Description=Run review-board DB backup daily
+
+[Timer]
+# 03:00 JST = 18:00 UTC。EC2 停止で跨いだ分は起動後にキャッチアップ。
+OnCalendar=*-*-* 18:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
