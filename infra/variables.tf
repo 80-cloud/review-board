@@ -113,6 +113,12 @@ variable "db_name" {
   default     = "reviewboard"
 }
 
+variable "restore_snapshot_id" {
+  description = "RDS をこのスナップショットから復元する（通常は空文字＝新規作成）"
+  type        = string
+  default     = ""
+}
+
 variable "db_username" {
   description = "RDS マスターユーザー名"
   type        = string

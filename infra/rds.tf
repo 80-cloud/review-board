@@ -23,6 +23,9 @@ resource "aws_db_subnet_group" "main" {
 resource "aws_db_instance" "main" {
   identifier = "${local.name_prefix}-db"
 
+  # 復元用：restore_snapshot_id を渡すとそのスナップショットから作成（通常は空＝新規）
+  snapshot_identifier = var.restore_snapshot_id != "" ? var.restore_snapshot_id : null
+
   engine         = "postgres"
   engine_version = var.db_engine_version
   instance_class = var.db_instance_class
@@ -63,6 +66,7 @@ resource "aws_db_instance" "main" {
   #   ※ prevent_destroy は変数で制御できない（Terraform 仕様）。
   lifecycle {
     prevent_destroy = true
+    ignore_changes  = [snapshot_identifier] # 復元後に毎回差分が出ないように
   }
 
   tags = { Name = "${local.name_prefix}-db" }
