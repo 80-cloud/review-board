@@ -34,7 +34,8 @@ resource "aws_ssm_parameter" "db_url" {
   name        = "${local.ssm_prefix}/DATABASE_URL"
   description = "review-board JDBC URL"
   type        = "String"
-  value       = "jdbc:postgresql://${aws_db_instance.main.address}:${aws_db_instance.main.port}/${var.db_name}"
+  # enable_rds=true は RDS を、false（既定）は EC2 ローカル PostgreSQL を指す（one() で 0/1 両対応）。
+  value = one(aws_db_instance.main[*].address) != null ? "jdbc:postgresql://${one(aws_db_instance.main[*].address)}:${one(aws_db_instance.main[*].port)}/${var.db_name}" : "jdbc:postgresql://localhost:5432/${var.db_name}"
 
   tags = { Name = "${local.name_prefix}-db-url" }
 }

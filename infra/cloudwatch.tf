@@ -52,6 +52,8 @@ resource "aws_cloudwatch_metric_alarm" "ec2_cpu_high" {
 
 # --- RDS: 過負荷の早期検知 ---
 resource "aws_cloudwatch_metric_alarm" "rds_cpu_high" {
+  count = var.enable_rds ? 1 : 0
+
   alarm_name          = "${local.name_prefix}-rds-cpu-high"
   alarm_description   = "RDS の CPU 使用率が 80% を超過（3 期間連続）。"
   comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -64,7 +66,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_cpu_high" {
   treat_missing_data  = "notBreaching"
 
   dimensions = {
-    DBInstanceIdentifier = aws_db_instance.main.id
+    DBInstanceIdentifier = aws_db_instance.main[0].id
   }
 
   alarm_actions = [aws_sns_topic.alerts.arn]
@@ -74,6 +76,8 @@ resource "aws_cloudwatch_metric_alarm" "rds_cpu_high" {
 # --- RDS: 残ストレージ枯渇 ---
 # 単位は Byte。1 GB = 1,073,741,824。
 resource "aws_cloudwatch_metric_alarm" "rds_free_storage_low" {
+  count = var.enable_rds ? 1 : 0
+
   alarm_name          = "${local.name_prefix}-rds-free-storage-low"
   alarm_description   = "RDS の空きストレージが 1GB を下回った（無料枠 20GB の 5% 相当）。"
   comparison_operator = "LessThanThreshold"
@@ -86,7 +90,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_free_storage_low" {
   treat_missing_data  = "notBreaching"
 
   dimensions = {
-    DBInstanceIdentifier = aws_db_instance.main.id
+    DBInstanceIdentifier = aws_db_instance.main[0].id
   }
 
   alarm_actions = [aws_sns_topic.alerts.arn]
@@ -96,6 +100,8 @@ resource "aws_cloudwatch_metric_alarm" "rds_free_storage_low" {
 # --- RDS: 接続数の枯渇予兆 ---
 # t3.micro の max_connections は ~80。80% = 64 を閾値にする（インスタンス変更時は要見直し）。
 resource "aws_cloudwatch_metric_alarm" "rds_connections_high" {
+  count = var.enable_rds ? 1 : 0
+
   alarm_name          = "${local.name_prefix}-rds-connections-high"
   alarm_description   = "RDS の接続数が max_connections の 80% を継続超過（プールリークの可能性）。"
   comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -108,7 +114,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_connections_high" {
   treat_missing_data  = "notBreaching"
 
   dimensions = {
-    DBInstanceIdentifier = aws_db_instance.main.id
+    DBInstanceIdentifier = aws_db_instance.main[0].id
   }
 
   alarm_actions = [aws_sns_topic.alerts.arn]

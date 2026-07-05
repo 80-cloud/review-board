@@ -18,13 +18,13 @@ output "ssh_command" {
 }
 
 output "rds_address" {
-  description = "RDS ホスト名（EC2 内からのみ到達可）"
-  value       = aws_db_instance.main.address
+  description = "RDS ホスト名（enable_rds=false の時は null）"
+  value       = one(aws_db_instance.main[*].address)
 }
 
 output "rds_port" {
-  description = "RDS ポート"
-  value       = aws_db_instance.main.port
+  description = "RDS ポート（enable_rds=false の時は null）"
+  value       = one(aws_db_instance.main[*].port)
 }
 
 output "s3_screenshot_bucket" {
