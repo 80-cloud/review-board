@@ -55,6 +55,14 @@ resource "aws_instance" "app" {
   user_data                   = file("${path.module}/user_data.sh")
   user_data_replace_on_change = true
 
+  # 稼働中インスタンスは pet（アプリ＋ローカル PostgreSQL の本番データを載せる）。
+  # AMI（data source は最新 AL2023 を引くため新AMIで変化）や user_data の更新で
+  # 自動置換されると本番DBが飛ぶため、これらの変更は無視する。
+  # 基盤更新は自動置換でなく、意図的な再構築＋データ移行で行う。
+  lifecycle {
+    ignore_changes = [ami, user_data]
+  }
+
   tags = { Name = "${local.name_prefix}-ec2" }
 }
 
