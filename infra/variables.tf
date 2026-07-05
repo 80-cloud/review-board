@@ -107,6 +107,12 @@ variable "db_allocated_storage" {
   default     = 20
 }
 
+variable "enable_rds" {
+  description = "マネージド RDS を作成するか。false=EC2 ローカル PostgreSQL 運用（既定・コスト最適化のブリッジ構成）。true=RDS を復活。"
+  type        = bool
+  default     = false
+}
+
 variable "db_name" {
   description = "初期データベース名"
   type        = string

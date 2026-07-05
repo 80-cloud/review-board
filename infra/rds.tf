@@ -2,9 +2,10 @@
 # rds.tf — RDS PostgreSQL（private・最小露出・★多層の削除保護）
 # =====================================================================
 # review-board は セキュリティが突出点。DB は最重要資産のため task-board より強く守る：
-#   - deletion_protection = true（AWS 側の削除保護）
-#   - lifecycle.prevent_destroy = true（Terraform 側の削除保護）
+#   - deletion_protection = true（AWS 側の削除保護。enable_rds=true 時に有効）
 #   - skip_final_snapshot = false（破棄時に最終スナップショットを必ず取得）
+# ※ RDS は enable_rds（既定 false）で任意化。既定は EC2 ローカル PostgreSQL 運用のため
+#   Terraform 側 prevent_destroy は撤去した（保護は deletion_protection と運用ゲートで維持）。
 # 共通設計方針 §13-1「Terraform で本番DB(バックアップ含む)を全削除」事故の予防（多層防御 階層2）。
 # =====================================================================
 
@@ -21,6 +22,9 @@ resource "aws_db_subnet_group" "main" {
 #tfsec:ignore:aws-rds-enable-performance-insights
 #tfsec:ignore:aws-rds-enable-iam-auth
 resource "aws_db_instance" "main" {
+  # enable_rds=false（既定）では作成しない。EC2 ローカル PostgreSQL 運用のブリッジ構成。
+  count = var.enable_rds ? 1 : 0
+
   identifier = "${local.name_prefix}-db"
 
   # 復元用：restore_snapshot_id を渡すとそのスナップショットから作成（通常は空＝新規）
@@ -59,14 +63,10 @@ resource "aws_db_instance" "main" {
   # AWS 側削除保護（多層防御 階層2）
   deletion_protection = true
 
-  # Terraform 側削除保護：terraform destroy をエラーで止める。
-  # 正規の削除手順（インフラ構成.md §8）：
-  #   prevent_destroy=false に変更 → apply（lifecycle のみ）→ deletion_protection も false に
-  #   → apply → destroy → 完了後に両方を戻す。「ワンコマンドで destroy できない」を既定にする。
-  #   ※ prevent_destroy は変数で制御できない（Terraform 仕様）。
   lifecycle {
-    prevent_destroy = true
-    ignore_changes  = [snapshot_identifier] # 復元後に毎回差分が出ないように
+    # prevent_destroy は撤去（RDS を任意化＝既定オフのため）。
+    # 保護は AWS 側 deletion_protection と運用ゲート（apply は人間承認）で維持する。
+    ignore_changes = [snapshot_identifier] # 復元後に毎回差分が出ないように
   }
 
   tags = { Name = "${local.name_prefix}-db" }
