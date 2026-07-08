@@ -70,7 +70,7 @@ public class User {
     @Column(name = "mfa_enabled", nullable = false)
     private boolean mfaEnabled = false;
 
-    // --- 非正規化カウンタ（書き込みと同一Txで増減 + 定期再計算で補正。共通設計方針） ---
+    // --- 非正規化カウンタ（書き込みと同一Txで増減 + 定期再計算で補正） ---
     @Column(name = "received_reviews_count", nullable = false)
     private int receivedReviewsCount = 0;
 

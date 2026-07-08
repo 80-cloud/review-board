@@ -90,7 +90,7 @@ public class PostService {
 
     /**
      * F-POST-03 一覧 ＋ F-SEARCH-01 検索 ＋ F-FILTER-01 絞り込み/並び替え。
-     * 自 cohort・未削除のみ（IDOR 遮断は Repository クエリで常時担保）。ページネーション（共通設計方針）。
+     * 自 cohort・未削除のみ（IDOR 遮断は Repository クエリで常時担保）。ページネーション対応。
      *
      * @param q             キーワード（タイトル/説明の部分一致。空/ null は無視）
      * @param aspects       キーワードから解決した観点（タグ一致でヒット。null/空は無視）
@@ -189,7 +189,7 @@ public class PostService {
         return post;
     }
 
-    /** F-POST-02 論理削除（共通設計方針）。所有者のみ（不一致は 404）。 */
+    /** F-POST-02 論理削除。所有者のみ（不一致は 404）。 */
     @Transactional
     public void delete(AuthPrincipal principal, Long postId) {
         Post post = loadOwned(principal, postId);

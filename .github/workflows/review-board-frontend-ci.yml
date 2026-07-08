@@ -1,7 +1,7 @@
 name: review-board Frontend CI (lint, test & build)
 
 # ============================================================
-# 共通設計方針：CI は Fail Fast（lint→test→build）。backend CI と並列のフロント版。
+# CI は Fail Fast（lint→test→build）。backend CI と並列のフロント版。
 # frontend の lint（ESLint）→ unit test（Vitest）→ build（Vite）を回す。
 # ============================================================
 

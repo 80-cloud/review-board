@@ -38,7 +38,7 @@ public class EvaluationService {
     }
 
     /**
-     * F-EVAL-01 評価を付ける。旧 latest を倒し、新規を is_latest=true で積む（履歴保持・共通設計方針）。
+     * F-EVAL-01 評価を付ける。旧 latest を倒し、新規を is_latest=true で積む（履歴保持）。
      * 投稿は評価者（講師）の cohort 内のものに限る（他 cohort は 404）。
      */
     @Transactional
