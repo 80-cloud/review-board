@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 /**
  * トップページの集計（案L ランディング）。★セキュリティ：集計は閲覧者の cohort 内に閉じる。
- * 母集合（cohort の投稿）を一度引いて、件数・合格・実績をメモリ上で束ねる（cohort 規模は小さい・共通設計方針）。
+ * 母集合（cohort の投稿）を一度引いて、件数・合格・実績をメモリ上で束ねる（cohort 規模は小さい）。
  */
 @Service
 public class StatsService {

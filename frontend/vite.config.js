@@ -36,9 +36,9 @@ export default defineConfig({
         'src/hooks/useDraft.js',
         'src/pages/NotFoundPage.jsx',
       ],
-      // 床（最低保証）。引き継ぎ書 #7 の現実値を採用し、四半期で 5% ずつ引き上げる方針。
+      // カバレッジ閾値（最低保証）。引き継ぎ書 #7 の現実値を採用し、四半期で 5% ずつ引き上げる方針。
       // functions が他より低いのは MarkdownText の HTML 要素 renderer（h1〜td 等）が
-      // テスト経路で呼ばれない構造のため。実値（57%）に余裕を持たせて 50% を床にする。
+      // テスト経路で呼ばれない構造のため。実値（57%）に余裕を持たせて 50% を下限にする。
       thresholds: {
         lines: 75,
         branches: 65,

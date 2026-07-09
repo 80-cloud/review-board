@@ -6,7 +6,7 @@
 #   - skip_final_snapshot = false（破棄時に最終スナップショットを必ず取得）
 # ※ RDS は enable_rds（既定 false）で任意化。既定は EC2 ローカル PostgreSQL 運用のため
 #   Terraform 側 prevent_destroy は撤去した（保護は deletion_protection と運用ゲートで維持）。
-# 共通設計方針 §13-1「Terraform で本番DB(バックアップ含む)を全削除」事故の予防（多層防御 階層2）。
+# CLAUDE.md §13-1「Terraform で本番DB(バックアップ含む)を全削除」事故の予防（多層防御 階層2）。
 # =====================================================================
 
 resource "aws_db_subnet_group" "main" {

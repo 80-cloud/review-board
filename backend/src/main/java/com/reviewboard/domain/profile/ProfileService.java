@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 
 /**
  * 成長記録ページの集約（F-PROF・主役）。★セキュリティ：閲覧対象は同 cohort のメンバーに限る（他 cohort は 404）。
- * 投稿・評価・レビュー・reviewer をバッチで引いて N+1 を避ける（共通設計方針）。
+ * 投稿・評価・レビュー・reviewer をバッチで引いて N+1 を避ける。
  */
 @Service
 public class ProfileService {

@@ -9,7 +9,7 @@ import java.time.OffsetDateTime;
 
 /**
  * 講師の最終評価・承認（F-EVAL-01・★セキュリティの重点検証対象）。
- * 1 投稿に履歴行を積み、最新だけ is_latest=true（共通設計方針 履歴保持）。
+ * 1 投稿に履歴行を積み、最新だけ is_latest=true（履歴保持）。
  * 書き込みは講師ロール限定（サービス層 + @PreAuthorize で担保）。
  */
 @Entity
