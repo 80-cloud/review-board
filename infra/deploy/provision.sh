@@ -46,6 +46,7 @@ S3_BUCKET=$(ssm S3_BUCKET)
 S3_REGION=$REGION
 ARTIFACTS_BUCKET=$(ssm ARTIFACTS_BUCKET)
 CORS_ALLOWED_ORIGINS=$PUBLIC_ORIGIN
+PUBLIC_ORIGIN=$PUBLIC_ORIGIN
 BOOTSTRAP_ADMIN_EMAIL=$(ssm BOOTSTRAP_ADMIN_EMAIL)
 BOOTSTRAP_ADMIN_PASSWORD=$(ssm BOOTSTRAP_ADMIN_PASSWORD)
 EOF
@@ -102,6 +103,8 @@ elif [ -n "$DOMAIN" ]; then
   certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos \
     -m "${CERTBOT_EMAIL:-admin@$DOMAIN}" --redirect || \
     echo "certbot に失敗。DNS が EIP を指しているか確認し、手動で再実行してください。"
+  # Amazon Linux 2023 の certbot パッケージは更新タイマーが既定で無効。有効化しないと証明書が自動更新されない。
+  systemctl enable --now certbot-renew.timer || true
 else
   # TLS なし（HTTP のみ）。JWT_COOKIE_SECURE=true 環境ではログイン不可になる点に注意。
   install -m 644 "$HERE/nginx-review-board.conf" /etc/nginx/conf.d/review-board.conf
