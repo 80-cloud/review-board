@@ -4,13 +4,14 @@
 #
 # やること：
 #   (1) EC2(review-board-prod-ec2) を停止（稼働中なら）— 先にアプリ側を落とす
-#   (2) RDS(review-board-prod-db) を停止（available なら）
+#   (2) RDS(review-board-prod-db) を停止（存在して available なら。既定構成では存在しない）
 #
 # 重要な性質：
 #   - これは「停止(stop)」であり削除ではない。データ・EBS・EIP は保持され、
-#     up.sh で同じ IP のまま数分で復帰できる（Discord 共有URLは維持）。
+#     up.sh で数分で復帰できる（EIP があれば同じ IP。無ければ IP が変わるので DNS 更新が必要）。
 #   - 停止中も EBS と パブリックIPv4(EIP) の少額課金は継続する（削れるのは EC2/RDS の計算費）。
-#   - RDS は仕様上「停止後 最大7日で自動再開」する。長期に止めたい場合も up/down を回す前提。
+#   - RDS を使う構成では、RDS は仕様上「停止後 最大7日で自動再開」する。
+#   - EC2 停止中は証明書の自動更新が動かない。長期停止後は証明書の期限を確認すること。
 #   - 対象は review-board の本番リソースのみ。recipe-board / task-board には触れない。
 #
 # 使い方：
@@ -54,8 +55,9 @@ fi
 
 EC2_STATE="$(aws ec2 describe-instances --region "$REGION" --instance-ids "$INSTANCE_ID" \
   --query 'Reservations[0].Instances[0].State.Name' --output text)"
+# DB インスタンスは任意（既定構成は EC2 内の PostgreSQL）。存在しなければ none としてスキップする。
 DB_STATE="$(aws rds describe-db-instances --region "$REGION" --db-instance-identifier "$DB_ID" \
-  --query 'DBInstances[0].DBInstanceStatus' --output text)"
+  --query 'DBInstances[0].DBInstanceStatus' --output text 2>/dev/null || echo none)"
 
 log "対象  EC2=${INSTANCE_ID}(${EC2_NAME}, 現状:${EC2_STATE}) / RDS=${DB_ID}(現状:${DB_STATE}) / region=${REGION}"
 
@@ -66,7 +68,7 @@ fi
 
 # ---- 確認（停止＝本番をオフラインにする操作のため） ----
 if [ "$ASSUME_YES" -ne 1 ]; then
-  warn "本番(review-board)を停止します。停止中は https://${REGION} のサイトはオフラインになります（データ・URLは保持）。"
+  warn "本番(review-board)を停止します。停止中は本番サイトがオフラインになります（データ・URLは保持）。"
   printf "  上記の review-board リソースのみを停止します。実行しますか? [yes/NO]: "
   read -r ans
   if [ "$ans" != "yes" ]; then err "中止しました。"; exit 1; fi
@@ -87,9 +89,13 @@ if [ "$DB_STATE" = "available" ]; then
   log "RDS 停止中…"
   aws rds stop-db-instance --region "$REGION" --db-instance-identifier "$DB_ID" >/dev/null
   ok "RDS 停止リクエスト受付（stopped まで数分。完了は describe-db-instances で確認可）"
+elif [ "$DB_STATE" = "none" ]; then
+  log "RDS は存在しないためスキップ（EC2 内の PostgreSQL 構成）。"
 else
   warn "RDS は ${DB_STATE} のため stop 不要（スキップ）。"
 fi
 
-ok "停止手続き完了。再開は ./up.sh（同じ IP で復帰）。"
-warn "注意：RDS は最大7日で自動再開します。長く止める場合も up/down の運用を継続してください。"
+ok "停止手続き完了。再開は ./up.sh。"
+if [ "$DB_STATE" != "none" ]; then
+  warn "注意：RDS は最大7日で自動再開します。長く止める場合も up/down の運用を継続してください。"
+fi

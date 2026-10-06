@@ -20,6 +20,11 @@ resource "aws_iam_role" "ec2" {
   assume_role_policy = data.aws_iam_policy_document.ec2_assume.json
 
   tags = { Name = "${local.name_prefix}-ec2-role" }
+
+  # パッチ管理（SSM Quick Setup）が外部から付与する管理用タグは Terraform で消さない。
+  lifecycle {
+    ignore_changes = [tags["QSConfigId-scj53"], tags_all["QSConfigId-scj53"]]
+  }
 }
 
 # 最小権限ポリシー：スクショバケットの操作 ＋ 自プロジェクトの SSM 読取＋復号

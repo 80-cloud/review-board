@@ -3,12 +3,13 @@
 # up.sh — review-board 本番をオンデマンド起動する（時間制限コスト抑制の「起動」側）。
 #
 # やること：
-#   (1) RDS(review-board-prod-db) を起動（停止中なら）
+#   (1) RDS(review-board-prod-db) を起動（存在して停止中なら。既定構成では存在しない）
 #   (2) EC2(review-board-prod-ec2) を起動（停止中なら）
-#   (3) 両方の Ready を待機 → EIP(同じIP)で復帰 → ヘルスチェック
+#   (3) Ready を待機 → ヘルスチェック
 #
 # 前提：
-#   - EIP のため public IP は停止/再開で変わらない（Discord 共有URLは維持される）。
+#   - EIP があれば public IP は停止/再開で変わらない。EIP が無い場合は起動のたびに
+#     IP が変わるため、DNS（DDNS）の向き先を新しい IP へ更新する必要がある。
 #   - アプリは systemd(review-board.service, enable 済) + nginx(enable 済) で
 #     インスタンス起動時に自動復帰する（手動デプロイ不要）。
 #   - 対象は review-board の本番リソースのみ。recipe-board / task-board には触れない。
@@ -49,8 +50,9 @@ fi
 
 EC2_STATE="$(aws ec2 describe-instances --region "$REGION" --instance-ids "$INSTANCE_ID" \
   --query 'Reservations[0].Instances[0].State.Name' --output text)"
+# DB インスタンスは任意（既定構成は EC2 内の PostgreSQL）。存在しなければ none としてスキップする。
 DB_STATE="$(aws rds describe-db-instances --region "$REGION" --db-instance-identifier "$DB_ID" \
-  --query 'DBInstances[0].DBInstanceStatus' --output text)"
+  --query 'DBInstances[0].DBInstanceStatus' --output text 2>/dev/null || echo none)"
 
 log "対象  EC2=${INSTANCE_ID}(${EC2_NAME}, 現状:${EC2_STATE}) / RDS=${DB_ID}(現状:${DB_STATE}) / region=${REGION}"
 
@@ -63,6 +65,8 @@ fi
 if [ "$DB_STATE" = "stopped" ]; then
   log "RDS 起動中…"
   aws rds start-db-instance --region "$REGION" --db-instance-identifier "$DB_ID" >/dev/null
+elif [ "$DB_STATE" = "none" ]; then
+  log "RDS は存在しないためスキップ（EC2 内の PostgreSQL 構成）。"
 else
   warn "RDS は ${DB_STATE} のため start 不要（スキップ）。"
 fi
@@ -76,9 +80,11 @@ else
 fi
 
 # ---- (3) Ready 待機 ----
-log "RDS が available になるまで待機（数分かかります）…"
-aws rds wait db-instance-available --region "$REGION" --db-instance-identifier "$DB_ID"
-ok "RDS available"
+if [ "$DB_STATE" != "none" ]; then
+  log "RDS が available になるまで待機（数分かかります）…"
+  aws rds wait db-instance-available --region "$REGION" --db-instance-identifier "$DB_ID"
+  ok "RDS available"
+fi
 
 log "EC2 が running になるまで待機…"
 aws ec2 wait instance-running --region "$REGION" --instance-ids "$INSTANCE_ID"
@@ -87,7 +93,7 @@ ok "EC2 running"
 PUB_IP="$(aws ec2 describe-instances --region "$REGION" --instance-ids "$INSTANCE_ID" \
   --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)"
 log "アプリ(systemd)起動を待ってヘルスチェック（最大90秒）… https://${PUB_IP}/"
-for i in $(seq 1 18); do
+for _ in $(seq 1 18); do
   code="$(curl -sk -o /dev/null -w '%{http_code}' --max-time 5 "https://${PUB_IP}/actuator/health" || true)"
   if [ "$code" = "200" ]; then ok "アプリ応答 200（https://${PUB_IP}/ で閲覧可）"; exit 0; fi
   sleep 5
