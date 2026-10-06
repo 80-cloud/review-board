@@ -1,7 +1,7 @@
 # 正規TLS 手順書（DuckDNS ＋ Let's Encrypt）
 
-> **【現状・2026-06-03】この移行は完了済みです。** 本番は **`https://review-board-jp.duckdns.org`**
-> （→ Elastic IP `18.181.128.60`）で **Let's Encrypt 証明書・警告なし**で稼働中。
+> **この移行は完了済みです。** 本番は **`https://review-board-jp.duckdns.org`**
+> （→ Elastic IP。現在の値は `terraform output` で確認）で **Let's Encrypt 証明書・警告なし**で稼働する。
 > ⚠️ 旧 `reviewlab.duckdns.org` と旧 EIP `18.176.19.160` は**使われていません**
 > （旧 IP は解放後に第三者へ再割当て済み）。本書は手順の記録です。
 
@@ -13,7 +13,7 @@
 
 ## 前提・現状
 
-- 本番 EC2 は自己署名 TLS（`TLS_SELFSIGNED=1`）で `https://18.181.128.60` 稼働中（ブラウザ警告あり）。
+- 本番 EC2 は自己署名 TLS（`TLS_SELFSIGNED=1`）で `https://<EIP>` 稼働中（ブラウザ警告あり）。
 - `infra/deploy/provision.sh` は `DOMAIN` 指定時に `certbot --nginx` で Let's Encrypt 証明書を取得する
   パスを実装済み（#243 で `server_name` 差し替えを追加し DuckDNS でも確実にマッチするようにした）。
 - nginx vhost（`nginx-review-board.conf`）は SEC-13 セキュリティヘッダ（HSTS 含む）を付与済み。
@@ -33,23 +33,25 @@
 
 1. <https://www.duckdns.org> に GitHub/Google 等でログイン。
 2. 好きなサブドメイン（例：`review-board-jp`）を作成 → `review-board-jp.duckdns.org` が払い出される。
-3. その行の `current ip` に EC2 のパブリック IP（現状 `18.181.128.60`）を入力して **update**。
-   - ※ IP が変わり得る場合は DuckDNS の更新トークンで定期更新も可能（DDNS の利点）。本番 EC2 が
-     Elastic IP なら IP は固定なので一度の設定で足りる。
+3. その行の `current ip` に EC2 のパブリック IP（EIP）を入力して **update ip**。
+   - ※ 本番 EC2 が Elastic IP なら IP は固定なので一度の設定で足りる。EIP を解放した場合は
+     起動のたびに IP が変わるため、そのつど更新する（古い IP のままにしない）。
+   - 更新トークンはパスワードと同じ扱い（リポジトリ・チャット・スクリーンショットに出さない。
+     出てしまったら DuckDNS 画面で作り直す）。
 4. 反映確認（ローカル PC で）：
 
    ```bash
-   dig +short review-board-jp.duckdns.org   # → 18.181.128.60 が返れば伝播済み
+   dig +short review-board-jp.duckdns.org   # → EIP が返れば伝播済み
    ```
 
 ### 2. EC2 にログインして provision.sh を DOMAIN モードで実行（外部 Terminal）
 
 ```bash
-ssh -i ~/.ssh/aws-review-board ec2-user@review-board-jp.duckdns.org   # or @18.181.128.60
+ssh -i ~/.ssh/aws-review-board ec2-user@review-board-jp.duckdns.org   # or @<EIP>（SSM Session Manager でも可）
 
 sudo DOMAIN=review-board-jp.duckdns.org \
      PUBLIC_ORIGIN=https://review-board-jp.duckdns.org \
-     CERTBOT_EMAIL=hidek.y1998@gmail.com \
+     CERTBOT_EMAIL=<通知用メールアドレス> \
      /opt/review-board/infra-deploy/provision.sh
 ```
 
@@ -80,12 +82,16 @@ curl -s https://review-board-jp.duckdns.org/actuator/health
 
 ### 4. 証明書の自動更新
 
-- certbot は `certbot.timer`（systemd）で自動更新される。確認：
+- certbot は `certbot-renew.timer`（systemd）で自動更新される。Amazon Linux 2023 のパッケージは
+  このタイマーが**既定で無効**のため、provision.sh が有効化する。確認：
 
   ```bash
+  systemctl is-enabled certbot-renew.timer   # enabled であること
   systemctl list-timers | grep certbot
   sudo certbot renew --dry-run
   ```
+
+- EC2 停止中はタイマーが動かない。長期停止の後は証明書の期限を確認する（手順は デプロイ・ロールバック手順.md の「停止・再開」）。
 
 ---
 
@@ -94,7 +100,7 @@ curl -s https://review-board-jp.duckdns.org/actuator/health
 - 問題があれば自己署名モードに戻せる：
 
   ```bash
-  sudo TLS_SELFSIGNED=1 PUBLIC_ORIGIN=https://18.181.128.60 \
+  sudo TLS_SELFSIGNED=1 PUBLIC_ORIGIN=https://<EIP> \
        /opt/review-board/infra-deploy/provision.sh
   ```
 
